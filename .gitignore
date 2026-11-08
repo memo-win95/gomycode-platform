@@ -1,0 +1,19 @@
+# Environnements virtuels
+.venv/
+venv/
+env/
+
+# Cache Python et compilation
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Données brutes et logs locaux
+data/*.csv
+*.log
+.env
+
+# Fichiers système
+.DS_Store
+Thumbs.db
