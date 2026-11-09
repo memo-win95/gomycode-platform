@@ -1,5 +1,5 @@
 import joblib
-import pandas as pd
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
@@ -37,3 +37,87 @@ def predict_dropout(features: StudentFeatures):
         "dropout_probability": round(probability, 4),
         "status": "At Risk" if prediction == 1 else "Normal",
     } 
+
+@app.get("/dashboard/alerts")
+def get_alerts():
+    if model is None:
+        raise HTTPException(status_code=500, detail="Modèle non chargé")
+    
+    # عينة بيانات لمحاكاة طلاب المنصة
+    students_data = [
+        {"student_id": 101, "name": "Yassine B.", "attendance_rate": 0.45, "assignments_completed_ratio": 0.40, "platform_time_hours": 12.0},
+        {"student_id": 102, "name": "Sarra M.", "attendance_rate": 0.95, "assignments_completed_ratio": 0.92, "platform_time_hours": 65.0},
+        {"student_id": 103, "name": "Ahmed T.", "attendance_rate": 0.55, "assignments_completed_ratio": 0.50, "platform_time_hours": 18.0},
+    ]
+    
+    alerts = []
+    for s in students_data:
+        features = pd.DataFrame([{
+            "attendance_rate": s["attendance_rate"],
+            "assignments_completed_ratio": s["assignments_completed_ratio"],
+            "platform_time_hours": s["platform_time_hours"]
+        }])
+        
+        prob = float(model.predict_proba(features)[:, 1][0])
+        pred = int(model.predict(features)[0])
+        
+        alerts.append({
+            "student_id": s["student_id"],
+            "name": s["name"],
+            "dropout_probability": round(prob, 4),
+            "risk_level": "HIGH" if prob >= 0.6 else "LOW",
+            "status": "At Risk" if pred == 1 else "Normal"
+        })
+        
+    return alerts 
+alerts = []
+@app.get("/dashboard/alerts") 
+
+def get_alerts():
+    if model is None:
+        raise HTTPException(status_code=500, detail="Modèle non chargé")
+
+    students_data = [
+        {
+            "student_id": 101,
+            "name": "Yassine B.",
+            "attendance_rate": 0.45,
+            "assignments_completed_ratio": 0.40,
+            "platform_time_hours": 12.0,
+        },
+        {
+            "student_id": 102,
+            "name": "Sarra M.",
+            "attendance_rate": 0.95,
+            "assignments_completed_ratio": 0.92,
+            "platform_time_hours": 65.0,
+        },
+        {
+            "student_id": 103,
+            "name": "Ahmed T.",
+            "attendance_rate": 0.55,
+            "assignments_completed_ratio": 0.50,
+            "platform_time_hours": 18.0,
+        },
+    ]
+
+    alerts = []
+    for s in students_data:
+        features = [[
+            s["attendance_rate"],
+            s["assignments_completed_ratio"],
+            s["platform_time_hours"],
+        ]]
+
+        prob = float(model.predict_proba(features)[:, 1][0])
+        pred = int(model.predict(features)[0])
+
+        alerts.append({
+            "student_id": s["student_id"],
+            "name": s["name"],
+            "dropout_probability": round(prob, 4),
+            "risk_level": "HIGH" if prob >= 0.6 else "LOW",
+            "status": "At Risk" if pred == 1 else "Normal",
+        })
+
+    return alerts
