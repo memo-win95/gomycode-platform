@@ -1,58 +1,5 @@
 name: GoMyCode Platform - Continuous Integration (CI)
 
-# Déclencheurs : toute poussée de code ou création de Pull Request vers main
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
-jobs:
-  quality-and-tests:
-    name: Linting, Unit Tests & Model Verification
-    runs-on: ubuntu-latest
-
-    steps:
-      # 1. Récupération du dépôt Git
-      - name: Check out repository code
-        uses: actions/checkout@v4
-
-      # 2. Configuration de l'interprète Python
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: 'pip'
-
-      # 3. Installation des dépendances du projet
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-cov flake8
-
-      # 4. Contrôle de qualité de code (Linters)
-      - name: Lint source code with Flake8
-        run: |
-          # Arrête le pipeline si des erreurs de syntaxe ou des variables non définies existent
-          flake8 src/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
-          # Avertissements sur le style avec une tolérance de longueur de ligne de 120
-          flake8 src/ tests/ --count --max-line-length=120 --statistics
-
-      # 5. Entraînement et régénération de l'artefact du modèle
-      - name: Train and generate ML model artifact
-        run: |
-          python src/ml/train.py
-
-      # 6. Exécution des tests Pytest et calcul de la couverture
-      - name: Run Pytest suite
-        run: |
-          pytest -v --cov=src --cov-report=term-missing tests/
-          - name: Lint source code with Flake8
-     run: |
-       flake8 src/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
-       name: GoMyCode Platform - Continuous Integration (CI)
-
 on:
   push:
     branches: [ "main" ]
@@ -91,4 +38,3 @@ jobs:
       - name: Run Pytest suite
         run: |
           pytest -v --cov=src --cov-report=term-missing tests/
-          
