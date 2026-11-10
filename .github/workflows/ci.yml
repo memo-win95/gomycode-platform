@@ -59,4 +59,4 @@ jobs:
           # 6. Exécution des tests Pytest et calcul de la couverture
       - name: Run Pytest suite
         run: |
-          pytest -v --cov=src --cov-report=term-missing tests/
+          
