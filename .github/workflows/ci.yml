@@ -37,9 +37,6 @@ jobs:
 
       - name: Run Pytest suite
         run: |
-          pytest -v --cov=src --cov-report=term-missing tests/
-          - name: Run Pytest suite
-        run: |
           python -m pytest -v --cov=src --cov-report=term-missing tests/
         env:
           PYTHONPATH: .
