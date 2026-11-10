@@ -49,14 +49,46 @@ jobs:
         run: |
           pytest -v --cov=src --cov-report=term-missing tests/
           - name: Lint source code with Flake8
+     run: |
+       flake8 src/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
+       name: GoMyCode Platform - Continuous Integration (CI)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  quality-and-tests:
+    name: Linting, Unit Tests & Model Verification
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
         run: |
-          # السماح بتجاوز التحذيرات الشكلية المؤقتة والتركيز على الأخطاء الحرجة فقط
-          flake8 src/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
-          # 4. Contrôle de qualité de code (Linters)
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov flake8
+
       - name: Lint source code with Flake8
         run: |
           flake8 src/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
-          # 6. Exécution des tests Pytest et calcul de la couverture
+
+      - name: Train and generate ML model artifact
+        run: |
+          python src/ml/train.py
+
       - name: Run Pytest suite
         run: |
+          pytest -v --cov=src --cov-report=term-missing tests/
           
