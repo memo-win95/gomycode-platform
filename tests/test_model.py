@@ -25,3 +25,4 @@ def test_model_risk_logic(trained_model):
     risk_inactive = trained_model.predict_proba(inactive_student)[0][1]
 
     assert risk_diligent < risk_inactive, "L'étudiant assidu doit avoir un risque inférieur à l'étudiant inactif"
+    #"l'étudiant assidu doit avoir un risque inférieur à l'étudiant actif"L'étudiant assidu doit avoir un risque inférieur à l'étudiant inactif"

@@ -29,4 +29,5 @@ def test_predict_risk_invalid_data_rejection():
         "platform_time_hours": 10.0
     }
     response = client.post("/predict-dropout-risk", json=invalid_payload)
-    assert response.status_code == 422  # Erreur de validation Pydantic
+    assert response.status_code == 422  # Erreur de validation Pydantics 
+    
