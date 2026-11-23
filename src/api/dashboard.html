@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GoMyCode — Tableau de bord Risque de Décrochage</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
+      margin: 0;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 560px;
+      margin: 0 auto;
+      background: #1e293b;
+      padding: 1.75rem;
+      border-radius: 12px;
+    }
+    h1 {
+      font-size: 1.35rem;
+      margin-top: 0;
+      margin-bottom: 1.25rem;
+    }
+    label {
+      display: block;
+      margin-top: 0.9rem;
+      font-size: 0.9rem;
+      color: #cbd5e1;
+    }
+    input {
+      width: 100%;
+      padding: 0.6rem;
+      margin-top: 0.3rem;
+      border-radius: 8px;
+      border: 1px solid #475569;
+      background: #0f172a;
+      color: #f8fafc;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 1.3rem;
+      width: 100%;
+      padding: 0.7rem;
+      border: none;
+      border-radius: 8px;
+      background: #e11d48;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .box {
+      margin-top: 1.25rem;
+      padding: 1rem;
+      border-radius: 8px;
+      display: none;
+    }
+    .result-box {
+      background: #0f172a;
+      border: 1px solid #334155;
+    }
+    .error-box {
+      background: #450a0a;
+      border: 1px solid #991b1b;
+      color: #fecaca;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+    .badge-high {
+      background: #991b1b;
+      color: #fecaca;
+    }
+    .badge-normal {
+      background: #166534;
+      color: #bbf7d0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Suivi Pédagogique — Risque de Décrochage</h1>
+
+    <form id="prediction-form">
+      <label for="attendance_rate">
+        Taux de présence (0.0 à 1.0)
+        <input type="number" id="attendance_rate" step="0.01" value="0.45" required />
+      </label>
+
+      <label for="assignments_completed_ratio">
+        Ratio de devoirs rendus (0.0 à 1.0)
+        <input type="number" id="assignments_completed_ratio" step="0.01" value="0.35" required />
+      </label>
+
+      <label for="platform_time_hours">
+        Temps sur la plateforme (heures ≥ 0)
+        <input type="number" id="platform_time_hours" step="0.5" value="6.0" required />
+      </label>
+
+      <button type="submit">Calculer le risque</button>
+    </form>
+
+    <div id="error-box" class="box error-box"></div>
+
+    <div id="result-box" class="box result-box">
+      <p><strong>Score calculé :</strong> <span id="score-text">-</span></p>
+      <p><strong>Statut d'alerte :</strong> <span id="status-badge" class="badge">-</span></p>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("prediction-form");
+    const errorBox = document.getElementById("error-box");
+    const resultBox = document.getElementById("result-box");
+    const scoreText = document.getElementById("score-text");
+    const statusBadge = document.getElementById("status-badge");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      errorBox.style.display = "none";
+      resultBox.style.display = "none";
+
+      const payload = {
+        attendance_rate: parseFloat(document.getElementById("attendance_rate").value),
+        assignments_completed_ratio: parseFloat(
+          document.getElementById("assignments_completed_ratio").value
+        ),
+        platform_time_hours: parseFloat(document.getElementById("platform_time_hours").value),
+      };
+
+      try {
+        const response = await fetch("/predict-dropout-risk", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          const details = Array.isArray(data.detail)
+            ? data.detail.map((item) => `${item.loc.slice(-1)[0]}: ${item.msg}`).join(" | ")
+            : data.detail || "Paramètres saisis invalides.";
+          errorBox.textContent = `Erreur (${response.status}) : ${details}`;
+          errorBox.style.display = "block";
+          return;
+        }
+
+        const score = Number(data.dropout_risk_score);
+        const isHighRisk = score > 0.60;
+
+        scoreText.textContent = score.toFixed(3);
+        statusBadge.textContent = isHighRisk ? "High Risk" : "Normal";
+        statusBadge.className = `badge ${isHighRisk ? "badge-high" : "badge-normal"}`;
+        resultBox.style.display = "block";
+      } catch (err) {
+        errorBox.textContent = "Erreur de connexion : l'API est actuellement injoignable.";
+        errorBox.style.display = "block";
+      }
+    });
+  </script>
+</body>
+</html>

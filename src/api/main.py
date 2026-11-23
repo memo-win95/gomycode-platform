@@ -4,11 +4,11 @@ import joblib
 import numpy as np
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
-
+from pathlib import Path
+from fastapi.responses import HTMLResponse
 app = FastAPI(title="GoMyCode Dropout Risk API", version="1.0.0")
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "../../models/student_risk_model.joblib")
-
 def get_model():
     if not os.path.exists(MODEL_PATH):
         raise FileNotFoundError(f"Modèle introuvable à l'emplacement : {MODEL_PATH}")
@@ -42,3 +42,7 @@ def predict_risk(metrics: StudentMetrics):
         raise HTTPException(status_code=500, detail=str(fnf_err))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+@app.get("/dashboard", response_class=HTMLResponse)
+def get_instructor_dashboard():
+    html_path = Path(__file__).resolve().parent / "dashboard.html"
+    return HTMLResponse(content=html_path.read_text(encoding="utf-8"))
