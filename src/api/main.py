@@ -42,3 +42,4 @@ def predict_risk(metrics: StudentMetrics):
         raise HTTPException(status_code=500, detail=str(fnf_err))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
